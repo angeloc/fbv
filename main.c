@@ -65,7 +65,7 @@ void setup_console(int t)
 	}
 	else
 		tcsetattr(0, TCSANOW, &old_termios);
-	
+
 }
 
 static inline void do_rotate(struct image *i, int rot)
@@ -75,7 +75,7 @@ static inline void do_rotate(struct image *i, int rot)
 		unsigned char *nextimage, *nextalpha=NULL;
 		unsigned char *previmage, *prevalpha;
 		int t;
-		
+
 		if (i->nextrgb)
 			previmage = i->nextrgb;
 		else
@@ -115,24 +115,24 @@ static inline void do_enlarge(struct image *i, int screen_width, int screen_heig
 		int xsize = i->width, ysize = i->height;
 		unsigned char *nextimage, *nextalpha=NULL;
 		unsigned char *previmage, *prevalpha;
-		
+
 		if(ignoreaspect)
 		{
 			if(i->width < screen_width)
 				xsize = screen_width;
 			if(i->height < screen_height)
 				ysize = screen_height;
-			
+
 			goto have_sizes;
 		}
-		
+
 		if((i->height * screen_width / i->width) <= screen_height)
 		{
 			xsize = screen_width;
 			ysize = i->height * screen_width / i->width;
 			goto have_sizes;
 		}
-		
+
 		if((i->width * screen_height / i->height) <= screen_width)
 		{
 			xsize = i->width * screen_height / i->height;
@@ -153,7 +153,7 @@ have_sizes:
 		if (debugme) fprintf(stdout, "enlarge new %p\n", nextimage);
 		if(prevalpha)
 			nextalpha = alpha_resize(prevalpha, i->width, i->height, xsize, ysize);
-		
+
 		i->width = xsize;
 		i->height = ysize;
 		if (i->nextrgb)
@@ -173,7 +173,7 @@ static inline void do_fit_to_screen(struct image *i, int screen_width, int scree
 		unsigned char *nextimage, *nextalpha=NULL;
 		unsigned char *previmage, *prevalpha;
 		int nx_size = i->width, ny_size = i->height;
-		
+
 		if(ignoreaspect)
 		{
 			if(i->width > screen_width)
@@ -194,7 +194,7 @@ static inline void do_fit_to_screen(struct image *i, int screen_width, int scree
 				ny_size = screen_height;
 			}
 		}
-		
+
 		if (i->nextrgb)
 			previmage = i->nextrgb;
 		else
@@ -207,10 +207,10 @@ static inline void do_fit_to_screen(struct image *i, int screen_width, int scree
 			nextimage = color_average_resize(previmage, i->width, i->height, nx_size, ny_size);
 		else
 			nextimage = simple_resize(previmage, i->width, i->height, nx_size, ny_size);
-		
+
 		if(prevalpha)
 			nextalpha = alpha_resize(prevalpha, i->width, i->height, nx_size, ny_size);
-		
+
 		i->width = nx_size;
 		i->height = ny_size;
 		if (i->nextrgb)
@@ -243,7 +243,7 @@ static inline void do_display(struct image *i, int x_pan, int y_pan, int x_offs,
 	}
 
 	if (debugme) fprintf(stdout, "display %p\n", image);
-	fb_display(image, alpha, i->width, i->height, x_pan, y_pan, x_offs, y_offs, 
+	fb_display(image, alpha, i->width, i->height, x_pan, y_pan, x_offs, y_offs,
 					alpha ? &(i->saved) : NULL, newimage);
 
 	if (i->nextrgb)
@@ -271,14 +271,14 @@ int show_image(char *filename)
 
 	unsigned char * image_ptr = NULL;
 	unsigned char * alpha_ptr = NULL;
-	
+
 	int x_size, y_size, screen_width, screen_height;
 	int x_pan, y_pan, x_offs, y_offs, refresh = 1, c, ret = 1;
 	int delay = opt_delay, retransform = 1;
-	
+
 	int transform_stretch = opt_stretch, transform_enlarge = opt_enlarge, transform_cal = (opt_stretch == 2),
 	    transform_iaspect = opt_ignore_aspect, transform_rotation = 0;
-	
+
 	struct image i;
 
 	struct timespec refresh_ts, starttime_ts, now_ts, delta_ts;
@@ -328,7 +328,7 @@ int show_image(char *filename)
 	return(1);
 
 identified:
-	if (debugme) fprintf(stdout, "Image size: %dx%d\n", x_size, y_size);	
+	if (debugme) fprintf(stdout, "Image size: %dx%d\n", x_size, y_size);
 
 	if(load(filename, &image_ptr, opt_alpha ? &alpha_ptr : NULL, x_size, y_size) != FH_ERROR_OK)
 	{
@@ -339,7 +339,7 @@ identified:
 	clock_gettime(CLOCK_REALTIME, &starttime_ts);
 
 	getCurrentRes(&screen_width, &screen_height);
-	
+
 	i.width = x_size;
 	i.height = y_size;
 	i.rgb = NULL;
@@ -369,7 +369,7 @@ identified:
 			}
 			if(opt_image_info)
 				printf("fbv - The Framebuffer Viewer\n%s\n%d x %d\n", filename, x_size, y_size);
-			refresh = 1; 
+			refresh = 1;
 		}
 		if(refresh)
 		{
@@ -377,12 +377,12 @@ identified:
 				x_offs = (screen_width - i.width) / 2;
 			else
 				x_offs = 0;
-			
+
 			if(i.height < screen_height)
 				y_offs = (screen_height - i.height) / 2;
 			else
 				y_offs = 0;
-		
+
 			do_display(&i, x_pan, y_pan, x_offs, y_offs, retransform);
 
 			retransform = 0;
@@ -401,7 +401,7 @@ identified:
 				case 'q':
 					ret = 0;
 					goto done;
-				case ' ': case 10: case 13: 
+				case ' ': case 10: case 13:
 					goto done;
 				case '>': case '.':
 					goto done;
@@ -437,7 +437,7 @@ identified:
 					if(y_pan > (i.height - screen_height)) y_pan = i.height - screen_height;
 					refresh = 1;
 					break;
-				case 'f': 
+				case 'f':
 					transform_stretch = !transform_stretch;
 					retransform = 1;
 					break;
@@ -527,7 +527,7 @@ identified:
 						do_fit_to_screen(&i, screen_width, screen_height, transform_iaspect, transform_cal);
 					if(transform_enlarge)
 						do_enlarge(&i, screen_width, screen_height, transform_iaspect);
-					refresh = 1; 
+					refresh = 1;
 				}
 			}
 		}
@@ -539,7 +539,7 @@ done:
 		printf("\033[H\033[J");
 		fflush(stdout);
 	}
-	
+
 error_mem:
 	if (unload)
 		unload();
@@ -596,7 +596,7 @@ void sighandler(int s)
 	}
 	setup_console(0);
 	_exit(128 + s);
-	
+
 }
 
 int main(int argc, char **argv)
@@ -619,14 +619,14 @@ int main(int argc, char **argv)
 		{0, 0, 0, 0}
 	};
 	int c, i;
-	
+
 	if(argc < 2)
 	{
 		help(argv[0]);
 		fprintf(stderr, "Error: Required argument missing.\n");
 		return(1);
 	}
-	
+
 	while((c = getopt_long_only(argc, argv, "hcauifks:erd", long_options, NULL)) != EOF)
 	{
 		switch(c)
@@ -668,8 +668,8 @@ int main(int argc, char **argv)
 #endif
 		}
 	}
-	
-	
+
+
 	if(!argv[optind])
 	{
 		fprintf(stderr, "Required argument missing! Consult %s -h.\n", argv[0]);
@@ -682,21 +682,21 @@ int main(int argc, char **argv)
 	signal(SIGSEGV, sighandler);
 	signal(SIGTERM, sighandler);
 	signal(SIGABRT, sighandler);
-	
+
 	if(opt_hide_cursor)
 	{
 		printf("\033[?25l");
 		fflush(stdout);
 	}
-	
+
 	setup_console(1);
 
 	for(i = optind; argv[i]; )
 	{
 		int r = show_image(argv[i]);
-	
+
 		if(!r) break;
-		
+
 		i += r;
 		if(i < optind)
 			i = optind;
@@ -709,5 +709,5 @@ int main(int argc, char **argv)
 		printf("\033[?25h");
 		fflush(stdout);
 	}
-	return(0);	
+	return(0);
 }

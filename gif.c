@@ -37,7 +37,7 @@
 #define agflush return(FH_ERROR_FORMAT);
 #define agrflush { DGifCloseFile(gft, &error); BUG return(FH_ERROR_FORMAT); }
 
-#define MAX_IMAGES 64
+#define MAX_IMAGES 256
 static int imagecount=0;  // num of images in gif file
 static int imageix=0;  // current image loaded
 static char *images[MAX_IMAGES];
@@ -133,6 +133,7 @@ int fh_gif_load(char *name,unsigned char **buffer, unsigned char **alpha, int x,
 				lb=(char*)malloc(px*3);
 				slb=(char*) malloc(px);
 				image=(char*)malloc(x*y*3);
+				memset (image,0xFF,x*y*3);
 				if(lb!=NULL && slb!=NULL && image!=NULL)
 				{
 					unsigned char *alphabuffer = NULL;
@@ -150,18 +151,18 @@ int fh_gif_load(char *name,unsigned char **buffer, unsigned char **alpha, int x,
 
 					if(transparency != -1)
 					{
-						alphabuffer = malloc(px * py);
+						alphabuffer = malloc(x * y);
 					}
 					alphas[imagecount] = alphabuffer;
 					imagecount++;
 
-					fbptr = image;
-					alphaptr = alphabuffer;
 					if(!(gft->Image.Interlace))
 					{
-						for(i=0;i<py;i++,fbptr+=px*3)
+						for(i=0;i<py;i++)
 						{
 							int j;
+							fbptr = image + (gft->Image.Top * x * 3) + (i * x * 3) + (gft->Image.Left * 3);
+							alphaptr = alphabuffer + (gft->Image.Top * x) + (i * x) + gft->Image.Left;
 							if(DGifGetLine(gft,(GifPixelType*)slb,px)==GIF_ERROR) mgrflush;
 							m_rend_gif_decodecolormap((unsigned char*)slb,(unsigned char*)lb,cmap,cmaps,px,transparency);
 							memcpy(fbptr,lb,px*3);

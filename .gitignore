@@ -1,0 +1,4 @@
+*.o
+Make.conf
+config.h
+fbv
