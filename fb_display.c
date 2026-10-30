@@ -280,8 +280,8 @@ void blit2FB(int fh, unsigned char *fbbuff, unsigned char *alpha,
 
 				if(to == -1) to = xc;
 
-				memcpy(fbptr + (from * cpp), imptr + (from * cpp), (to - from - 1) * cpp);
-				x += to - from - 1;
+				memcpy(fbptr + (from * cpp), imptr + (from * cpp), (to - from) * cpp);
+				x = to;
 			}
 		}
 	}
