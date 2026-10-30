@@ -9,7 +9,7 @@ Fork from http://s-tech.elsat.net.pl/fbv/
 # REQUIREMENTS
 
 * Linux, configured to provide the framebuffer device interface
-* giflib for GIF support
+* giflib for GIF support, including animations
 * libjpeg for JPEG support
 * libpng for PNG support
 * built-in BMP support

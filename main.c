@@ -7,6 +7,7 @@
 
 #include <sys/time.h>
 #include <sys/types.h>
+#include <time.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <getopt.h>
@@ -236,9 +237,39 @@ static inline void do_fit_to_screen(struct image *i, int screen_width, int scree
 }
 
 
+static long now_ms(void)
+{
+	struct timespec ts;
+
+	clock_gettime(CLOCK_MONOTONIC, &ts);
+	return ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
+}
+
+/* Wait up to ms for a key, returns 1 if one is pending */
+static int wait_key(long ms)
+{
+	struct timeval tv;
+	fd_set fds;
+
+	if(ms < 0)
+		ms = 0;
+	tv.tv_sec = ms / 1000;
+	tv.tv_usec = (ms % 1000) * 1000;
+	if(!isatty(fileno(stdin)))
+	{
+		select(0, NULL, NULL, NULL, &tv);
+		return 0;
+	}
+	FD_ZERO(&fds);
+	FD_SET(0, &fds);
+	return select(1, &fds, NULL, NULL, &tv) > 0;
+}
+
 int show_image(char *filename)
 {
 	int (*load)(char *, unsigned char *, unsigned char **, int, int);
+	int (*load_next)(unsigned char *, unsigned char *, int, int) = NULL;
+	int (*frame_delay)(void) = NULL;
 	void (*unload)(void) = NULL;
 
 	unsigned char * image = NULL;
@@ -247,7 +278,8 @@ int show_image(char *filename)
 	int c, ret;
 	int x_size, y_size, screen_width, screen_height;
 	int x_pan, y_pan, x_offs, y_offs, refresh = 1;
-	int delay = opt_delay, retransform = 1, noshow = 0;
+	int delay = opt_delay, retransform = 1, reframe = 0, noshow = 0;
+	long delay_end = 0, frame_end = 0;
 
 	int transform_shrink = opt_shrink, transform_enlarge = opt_enlarge;
 	int transform_cal = (opt_shrink == 2), transform_iaspect = opt_ignore_aspect;
@@ -263,6 +295,8 @@ int show_image(char *filename)
 	if(fh_gif_getsize(filename, &x_size, &y_size) == FH_ERROR_OK)
 	{
 		load = fh_gif_load;
+		load_next = fh_gif_next;
+		frame_delay = fh_gif_delay;
 		unload = fh_gif_unload;
 		goto identified;
 	}
@@ -351,10 +385,13 @@ identified:
 		transform_rotation = opt_orientation;
 	}
 
+	delay_end = now_ms() + delay * 100;
+	if(frame_delay)
+		frame_end = now_ms() + frame_delay();
 
 	while(1)
 	{
-		if(retransform)
+		if(retransform || reframe)
 		{
 			if(i.do_free)
 			{
@@ -381,6 +418,12 @@ identified:
 			if(transform_enlarge)
 				do_enlarge(&i, screen_width, screen_height, transform_iaspect, transform_widthonly, transform_heightonly);
 
+			refresh = 1;
+		}
+		if(reframe)
+			reframe = 0;
+		else if(retransform)
+		{
 			x_pan = y_pan = 0;
 			if (opt_smartfit>=0)
 			{
@@ -441,28 +484,34 @@ identified:
 				goto error;
 			refresh = 0;
 		}
-		if(delay)
+		if(delay || (frame_delay && frame_delay()))
 		{
-			if (isatty(fileno(stdin)))
+			long now = now_ms(), ms = -1;
+
+			if(delay)
+				ms = delay_end - now;
+			if(frame_delay && frame_delay() && (ms < 0 || frame_end - now < ms))
+				ms = frame_end - now;
+			if(!wait_key(ms))
 			{
-				struct timeval tv;
-				fd_set fds;
-				tv.tv_sec = delay / 10;
-				tv.tv_usec = (delay % 10) * 100000;
-				FD_ZERO(&fds);
-				FD_SET(0, &fds);
-				if(select(1, &fds, NULL, NULL, &tv) <= 0)
-					{
-						ret = 1;
-						break;
-					}
-				delay = 0;
+				now = now_ms();
+				if(delay && now >= delay_end)
+				{
+					ret = 1;
+					break;
+				}
+				if(frame_delay && frame_delay() && now >= frame_end)
+				{
+					if(load_next(image, alpha, x_size, y_size) != FH_ERROR_OK)
+						goto error;
+					frame_end += frame_delay();
+					if(frame_end < now)
+						frame_end = now + frame_delay();
+					reframe = 1;
+				}
+				continue;
 			}
-			else {
-				usleep(delay*100);
-				ret = 1;
-				break;
-			}
+			delay = 0;
 		}
 
 		if (isatty(fileno(stdin)) && !opt_skip_tty)
