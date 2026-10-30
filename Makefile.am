@@ -2,7 +2,7 @@
 
 bin_PROGRAMS = fbv
 
-fbv_SOURCES = bmp.c fb_display.c jpeg.c main.c png.c transforms.c vt.c
+fbv_SOURCES = bmp.c fb_display.c gif.c jpeg.c main.c png.c transforms.c vt.c
 
 EXTRA_DIST = \
 	COPYING README.md VERSION \

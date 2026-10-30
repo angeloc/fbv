@@ -239,6 +239,7 @@ static inline void do_fit_to_screen(struct image *i, int screen_width, int scree
 int show_image(char *filename)
 {
 	int (*load)(char *, unsigned char *, unsigned char **, int, int);
+	void (*unload)(void) = NULL;
 
 	unsigned char * image = NULL;
 	unsigned char * alpha = NULL;
@@ -256,6 +257,16 @@ int show_image(char *filename)
 	double zoom = 1;
 
 	struct image i;
+
+#ifdef FBV_SUPPORT_GIF
+	if(fh_gif_id(filename))
+	if(fh_gif_getsize(filename, &x_size, &y_size) == FH_ERROR_OK)
+	{
+		load = fh_gif_load;
+		unload = fh_gif_unload;
+		goto identified;
+	}
+#endif
 
 #ifdef FBV_SUPPORT_PNG
 	if(fh_png_id(filename))
@@ -588,6 +599,8 @@ done:
 	}
 
 error:
+	if(unload)
+		unload();
 	free(image);
 	free(alpha);
 	if(i.do_free)

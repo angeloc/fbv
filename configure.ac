@@ -35,6 +35,12 @@ AC_SEARCH_LIBS([jpeg_start_decompress], [jpeg], [
 	]
 )
 
+AC_SEARCH_LIBS([DGifOpenFileName], [gif], [
+	CFLAGS="$CFLAGS -DFBV_SUPPORT_GIF"
+	], [
+	]
+)
+
 CFLAGS="$CFLAGS -DFBV_SUPPORT_BMP"
 
 AC_CONFIG_FILES([Makefile])

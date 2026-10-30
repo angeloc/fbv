@@ -24,6 +24,15 @@ int fh_jpeg_load(char *name, unsigned char *buffer, unsigned char **alpha, int x
 int fh_jpeg_getsize(char *name, int *x, int *y);
 #endif
 
+#ifdef FBV_SUPPORT_GIF
+int fh_gif_id(char *name);
+int fh_gif_load(char *name, unsigned char *buffer, unsigned char **alpha, int x,int y);
+int fh_gif_getsize(char *name, int *x, int *y);
+int fh_gif_next(unsigned char *buffer, unsigned char *alpha, int x, int y);
+int fh_gif_delay(void);
+void fh_gif_unload(void);
+#endif
+
 #ifdef FBV_SUPPORT_PNG
 int fh_png_id(char *name);
 int fh_png_load(char *name, unsigned char *buffer, unsigned char **alpha, int x,int y);
