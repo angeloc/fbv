@@ -1,7 +1,9 @@
 ## fbv
 A framebuffer image viewer.
 
-Fork from http://s-tech.elsat.net.pl/fbv/ 
+Fork of https://github.com/amadvance/fbv with GIF support, including animations.
+
+Originally from http://s-tech.elsat.net.pl/fbv/
 
 # OVERVIEW   
   fbv (FrameBuffer Viewer) is a simple program to view pictures on a linux framebuffer device. In 2000, when fbv was created, there were no other situable programs performing the same task, so the authors decided to follow the rule: `If you need a tool - write it yourself!` :-)
